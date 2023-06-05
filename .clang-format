@@ -1,0 +1,9 @@
+---
+Language:        Cpp
+BasedOnStyle:    Google
+ColumnLimit:     100
+IndentWidth:     2
+TabWidth:        2
+UseTab:          Never
+BreakBeforeBraces: Attach
+SpacesBeforeTrailingComments: 1
