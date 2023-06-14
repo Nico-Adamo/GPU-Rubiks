@@ -40,6 +40,21 @@ class RubiksCube {
     C_YBO = 0b00011100
   };
 
+  enum class EdgeCubie : uint8_t {
+    E_WR = 0b10100000,
+    E_WG = 0b11000000,
+    E_WB = 0b10010000,
+    E_WO = 0b10001000,
+    E_YR = 0b00100100,
+    E_YG = 0b01000100,
+    E_YB = 0b00010100,
+    E_YO = 0b00001100,
+    E_RG = 0b01100000,
+    E_RB = 0b00110000,
+    E_OG = 0b01001000,
+    E_OB = 0b00011000
+  };
+
   enum class Face : uint8_t { UP, LEFT, FRONT, RIGHT, BACK, DOWN };
 
   enum class Color : uint8_t { WHITE, GREEN, RED, BLUE, ORANGE, YELLOW };
@@ -73,7 +88,7 @@ class RubiksCube {
   void scramble(uint8_t depth);
 
   uint8_t getCorner(uint8_t pos);
-
+  uint8_t getEdge(uint8_t pos);
   bool operator==(const RubiksCube &c) const;
 
  private:

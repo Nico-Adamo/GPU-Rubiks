@@ -7,8 +7,11 @@
 static uint8_t cornerPos[8][3] = {{6, 10, 16},  {4, 18, 24},  {2, 26, 32},  {0, 8, 34},
                                   {42, 30, 20}, {40, 22, 12}, {46, 14, 36}, {44, 28, 38}};
 
-static uint8_t cornerColorFlags[6] = {0b10000000, 0b01000000, 0b00100000,
-                                      0b00010000, 0b00001000, 0b00000100};
+static uint8_t edgePos[12][3] = {{5, 17},  {7, 9},   {3, 25},  {1, 33},  {41, 21}, {47, 13},
+                                 {43, 29}, {45, 37}, {23, 11}, {19, 31}, {35, 15}, {39, 27}};
+
+static uint8_t colorFlags[6] = {0b10000000, 0b01000000, 0b00100000,
+                                0b00010000, 0b00001000, 0b00000100};
 
 static string FACES[6] = {"UP", "LEFT", "FRONT", "RIGHT", "BACK", "DOWN"};
 static string COLORS[6] = {"W", "G", "R", "B", "O", "Y"};
@@ -47,6 +50,7 @@ inline void RubiksCube::turnCounterClockwise(Face f) {
   asm volatile("rorq $16, %[face]" : [face] "+r"(face) :);
   *(uint64_t *)&cube[(unsigned)f * 8] = face;
 }
+
 /*
  Computes the permutation (s3, s0, s1, s2) on the cube indices
  Also computes (c3, c0, c1, c2)
@@ -177,6 +181,47 @@ bool RubiksCube::isSolved() {
          getFace(Face::BACK) == 0x404040404040404 && getFace(Face::DOWN) == 0x505050505050505;
 }
 /*
+  Returns the edge at pos as a binary number
+  0bCCCCCCOO
+  where the ith C flag is set if the corner contains color C,
+  and the O flags treated as a binary integer provide the orientation (0, 1 or 2)
+*/
+uint8_t RubiksCube::getEdge(uint8_t pos) {
+  Color c1 = cube[edgePos[pos][0]];
+  Color c2 = cube[edgePos[pos][1]];
+
+  enum EdgeCubie cubie = (enum EdgeCubie)(colorFlags[(uint8_t)c1] | colorFlags[(uint8_t)c2]);
+  uint8_t orientation;
+  switch (cubie) {
+    case EdgeCubie::E_WR:
+    case EdgeCubie::E_WG:
+    case EdgeCubie::E_WB:
+    case EdgeCubie::E_WO:
+      orientation = !(c1 == Color::WHITE);
+      break;
+    case EdgeCubie::E_YR:
+    case EdgeCubie::E_YG:
+    case EdgeCubie::E_YB:
+    case EdgeCubie::E_YO:
+      orientation = !(c1 == Color::YELLOW);
+      break;
+    case EdgeCubie::E_RG:
+    case EdgeCubie::E_RB:
+      orientation = !(c1 == Color::RED);
+      break;
+    case EdgeCubie::E_OG:
+    case EdgeCubie::E_OB:
+      orientation = !(c1 == Color::ORANGE);
+      break;
+    default:
+      std::bitset<8> x((uint8_t)cubie);
+      std::cout << "Invalid EdgeCubie " << x << "\n";
+      throw runtime_error("");
+  }
+  return (uint8_t)cubie | orientation;
+}
+
+/*
   Returns the corner at pos as a binary number
   0bCCCCCCOO
   where the ith C flag is set if the corner contains color C,
@@ -187,9 +232,8 @@ uint8_t RubiksCube::getCorner(uint8_t pos) {
   Color c2 = cube[cornerPos[pos][1]];
   Color c3 = cube[cornerPos[pos][2]];
 
-  enum CornerCubie cubie =
-      (enum CornerCubie)(cornerColorFlags[(uint8_t)c1] | cornerColorFlags[(uint8_t)c2] |
-                         cornerColorFlags[(uint8_t)c3]);
+  enum CornerCubie cubie = (enum CornerCubie)(colorFlags[(uint8_t)c1] | colorFlags[(uint8_t)c2] |
+                                              colorFlags[(uint8_t)c3]);
   uint8_t orientation;
   switch (cubie) {
     case CornerCubie::C_WGR:

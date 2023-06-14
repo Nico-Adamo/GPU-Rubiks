@@ -1,9 +1,12 @@
 #include "search.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 const uint8_t FOUND = 0;
 const uint8_t NOT_FOUND = UINT8_MAX;
+
+int totalConsidered = 0;
 
 IDASearcher::IDASearcher(heuristic_func_t heuristic, goal_func_t goal, void *goal_aux) {
   this->heuristic = heuristic;
@@ -34,6 +37,7 @@ uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation>
     if (std::find(cubePath.begin(), cubePath.end(), succ) == cubePath.end()) {
       cubePath.push_back(succ);
       movePath.push_back(move);
+      totalConsidered++;
       uint8_t probable_bound =
           search_helper(cubePath, movePath, curdepth + 1, bound, heuristic, goal, goal_aux);
       if (probable_bound == FOUND) {
@@ -50,6 +54,7 @@ uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation>
 }
 
 vector<RubiksCube::Rotation> IDASearcher::search(RubiksCube &cube) {
+  totalConsidered = 0;
   vector<RubiksCube> cubePath;
   vector<RubiksCube::Rotation> movePath;
   uint8_t bound = heuristic(cube);
@@ -58,10 +63,13 @@ vector<RubiksCube::Rotation> IDASearcher::search(RubiksCube &cube) {
     uint8_t probable_bound =
         search_helper(cubePath, movePath, 0, bound, this->heuristic, this->goal, this->goal_aux);
     if (probable_bound == FOUND) {
+      std::cout << "Total considered nodes: " << totalConsidered << "\n";
       return movePath;
     }
     if (probable_bound == NOT_FOUND) {
       vector<RubiksCube::Rotation> ret;
+      std::cout << "NOT FOUND"
+                << "\n";
       return ret;
     }
     bound = probable_bound;
