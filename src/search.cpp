@@ -1,21 +1,29 @@
 #include "search.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 const uint8_t FOUND = 0;
 const uint8_t NOT_FOUND = UINT8_MAX;
 
-IDASearcher::IDASearcher(uint8_t (*heuristic)(RubiksCube &)) { this->heuristic = heuristic; }
+IDASearcher::IDASearcher(heuristic_func_t heuristic, goal_func_t goal, void *goal_aux) {
+  this->heuristic = heuristic;
+  this->goal = goal;
+  this->goal_aux = goal_aux;
+}
+
+void IDASearcher::setGoalAux(void *aux) {
+  this->goal_aux = aux;
+}
 
 uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation> &movePath,
-                      uint8_t curdepth, uint8_t bound, uint8_t (*heuristic)(RubiksCube &)) {
+                      uint8_t curdepth, uint8_t bound, heuristic_func_t heuristic, goal_func_t goal,
+                      void *goal_aux) {
   RubiksCube cube_curr = cubePath.back();
   uint8_t cost = heuristic(cube_curr) + curdepth;
   if (cost > bound) {
     return cost;
   }
-  if (cube_curr.isSolved()) {
+  if (goal(cube_curr, goal_aux)) {
     return FOUND;
   }
   uint8_t min = NOT_FOUND;
@@ -26,7 +34,8 @@ uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation>
     if (std::find(cubePath.begin(), cubePath.end(), succ) == cubePath.end()) {
       cubePath.push_back(succ);
       movePath.push_back(move);
-      uint8_t probable_bound = search_helper(cubePath, movePath, curdepth + 1, bound, heuristic);
+      uint8_t probable_bound =
+          search_helper(cubePath, movePath, curdepth + 1, bound, heuristic, goal, goal_aux);
       if (probable_bound == FOUND) {
         return FOUND;
       }
@@ -46,7 +55,8 @@ vector<RubiksCube::Rotation> IDASearcher::search(RubiksCube &cube) {
   uint8_t bound = heuristic(cube);
   cubePath.push_back(cube);
   while (true) {
-    uint8_t probable_bound = search_helper(cubePath, movePath, 0, bound, this->heuristic);
+    uint8_t probable_bound =
+        search_helper(cubePath, movePath, 0, bound, this->heuristic, this->goal, this->goal_aux);
     if (probable_bound == FOUND) {
       return movePath;
     }
@@ -55,18 +65,5 @@ vector<RubiksCube::Rotation> IDASearcher::search(RubiksCube &cube) {
       return ret;
     }
     bound = probable_bound;
-  }
-}
-
-uint8_t iddfs_heuristic(RubiksCube &cube) { return 0; }
-
-int main() {
-  RubiksCube *cube = new RubiksCube;
-  cube->scramble(30);
-  cube->printCube();
-  IDASearcher *searcher = new IDASearcher(iddfs_heuristic);
-  vector<RubiksCube::Rotation> moves = searcher->search(*cube);
-  for (auto &move : moves) {
-    std::cout << (int)move << "\n";
   }
 }

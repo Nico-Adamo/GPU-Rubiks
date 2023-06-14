@@ -6,11 +6,17 @@ using namespace std;
 
 #define MAX_DEPTH 20
 
+typedef uint8_t (*heuristic_func_t)(RubiksCube &);
+typedef bool (*goal_func_t)(RubiksCube &, void *aux);
+
 class IDASearcher {
  public:
-  IDASearcher(uint8_t (*heuristic)(RubiksCube &));
+  IDASearcher(heuristic_func_t heuristic, goal_func_t goal, void *goal_aux);
   vector<RubiksCube::Rotation> search(RubiksCube &cube);
+  void setGoalAux(void *aux);
 
  private:
-  uint8_t (*heuristic)(RubiksCube &);
+  heuristic_func_t heuristic;
+  goal_func_t goal;
+  void *goal_aux;
 };

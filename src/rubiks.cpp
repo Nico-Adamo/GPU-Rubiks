@@ -1,7 +1,14 @@
 #include "rubiks.hpp"
 
+#include <bitset>
 #include <iostream>
 #include <random>
+
+static uint8_t cornerPos[8][3] = {{6, 10, 16},  {4, 18, 24},  {2, 26, 32},  {0, 8, 34},
+                                  {42, 30, 20}, {40, 22, 12}, {46, 14, 36}, {44, 28, 38}};
+
+static uint8_t cornerColorFlags[6] = {0b10000000, 0b01000000, 0b00100000,
+                                      0b00010000, 0b00001000, 0b00000100};
 
 static string FACES[6] = {"UP", "LEFT", "FRONT", "RIGHT", "BACK", "DOWN"};
 static string COLORS[6] = {"W", "G", "R", "B", "O", "Y"};
@@ -10,7 +17,9 @@ std::random_device rd;
 std::mt19937 eng(rd());
 
 // Constructor
-RubiksCube::RubiksCube() { resetCube(); }
+RubiksCube::RubiksCube() {
+  resetCube();
+}
 
 RubiksCube::RubiksCube(const RubiksCube &cube_to_copy) {
   copy(begin(cube_to_copy.cube), end(cube_to_copy.cube), begin(cube));
@@ -149,7 +158,9 @@ void RubiksCube::rotate(Rotation rotation) {
   }
 }
 
-uint64_t RubiksCube::getFace(Face f) const { return *(uint64_t *)&cube[(unsigned)f * 8]; }
+uint64_t RubiksCube::getFace(Face f) const {
+  return *(uint64_t *)&cube[(unsigned)f * 8];
+}
 
 bool RubiksCube::operator==(const RubiksCube &other) const {
   return getFace(Face::UP) == other.getFace(Face::UP) &&
@@ -164,4 +175,51 @@ bool RubiksCube::isSolved() {
   return getFace(Face::UP) == 0x00000000 && getFace(Face::LEFT) == 0x101010101010101 &&
          getFace(Face::FRONT) == 0x202020202020202 && getFace(Face::RIGHT) == 0x303030303030303 &&
          getFace(Face::BACK) == 0x404040404040404 && getFace(Face::DOWN) == 0x505050505050505;
+}
+/*
+  Returns the corner at pos as a binary number
+  0bCCCCCCOO
+  where the ith C flag is set if the corner contains color C,
+  and the O flags treated as a binary integer provide the orientation (0, 1 or 2)
+*/
+uint8_t RubiksCube::getCorner(uint8_t pos) {
+  Color c1 = cube[cornerPos[pos][0]];
+  Color c2 = cube[cornerPos[pos][1]];
+  Color c3 = cube[cornerPos[pos][2]];
+
+  enum CornerCubie cubie =
+      (enum CornerCubie)(cornerColorFlags[(uint8_t)c1] | cornerColorFlags[(uint8_t)c2] |
+                         cornerColorFlags[(uint8_t)c3]);
+  uint8_t orientation;
+  switch (cubie) {
+    case CornerCubie::C_WGR:
+      orientation = (c1 == Color::RED) ? 2 : (c1 == Color::GREEN);
+      break;
+    case CornerCubie::C_WRB:
+      orientation = (c1 == Color::BLUE) ? 2 : (c1 == Color::RED);
+      break;
+    case CornerCubie::C_WBO:
+      orientation = (c1 == Color::ORANGE) ? 2 : (c1 == Color::BLUE);
+      break;
+    case CornerCubie::C_WGO:
+      orientation = (c1 == Color::ORANGE) ? 2 : (c1 == Color::GREEN);
+      break;
+    case CornerCubie::C_YBR:
+      orientation = (c1 == Color::RED) ? 2 : (c1 == Color::BLUE);
+      break;
+    case CornerCubie::C_YRG:
+      orientation = (c1 == Color::GREEN) ? 2 : (c1 == Color::RED);
+      break;
+    case CornerCubie::C_YGO:
+      orientation = (c1 == Color::ORANGE) ? 2 : (c1 == Color::GREEN);
+      break;
+    case CornerCubie::C_YBO:
+      orientation = (c1 == Color::ORANGE) ? 2 : (c1 == Color::BLUE);
+      break;
+    default:
+      std::bitset<8> x((uint8_t)cubie);
+      std::cout << "Invalid CornerCubie " << x << "\n";
+      throw runtime_error("");
+  }
+  return orientation | (uint8_t)cubie;
 }
