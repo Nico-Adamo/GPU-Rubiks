@@ -7,3 +7,4 @@ TabWidth:        2
 UseTab:          Never
 BreakBeforeBraces: Attach
 SpacesBeforeTrailingComments: 1
+AllowShortFunctionsOnASingleLine: None
