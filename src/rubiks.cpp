@@ -267,3 +267,7 @@ uint8_t RubiksCube::getCorner(uint8_t pos) {
   }
   return orientation | (uint8_t)cubie;
 }
+
+RubiksCube::Color *RubiksCube::get_cube_array() {
+  return cube;
+}

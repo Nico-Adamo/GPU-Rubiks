@@ -18,9 +18,15 @@ void IDASearcher::setGoalAux(void *aux) {
   this->goal_aux = aux;
 }
 
+/*
+  Performs DFS search given a certain bound.
+  Returns FOUND if a path is found or the cost of the minumum-cost pruned branch
+  if not found.
+*/
 uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation> &movePath,
                       uint8_t curdepth, uint8_t bound, heuristic_func_t heuristic, goal_func_t goal,
                       void *goal_aux) {
+  totalConsidered++;
   RubiksCube cube_curr = cubePath.back();
   uint8_t cost = heuristic(cube_curr) + curdepth;
   if (cost > bound) {
@@ -53,12 +59,16 @@ uint8_t search_helper(vector<RubiksCube> &cubePath, vector<RubiksCube::Rotation>
   return min;
 }
 
+/*
+  Peforms IDA* searches, iteratively increasing the bound on searches.
+  The bound is evaluated based on the current depth and heuristic.
+*/
 vector<RubiksCube::Rotation> IDASearcher::search(RubiksCube &cube) {
-  totalConsidered = 0;
   vector<RubiksCube> cubePath;
   vector<RubiksCube::Rotation> movePath;
   uint8_t bound = heuristic(cube);
   cubePath.push_back(cube);
+  totalConsidered = 0;
   while (true) {
     uint8_t probable_bound =
         search_helper(cubePath, movePath, 0, bound, this->heuristic, this->goal, this->goal_aux);

@@ -1,8 +1,8 @@
+#include "heuristic.hpp"
+
 #include <bitset>
 #include <cstring>
 #include <iostream>
-
-#include "search.hpp"
 
 uint8_t manhattan_corners[8][255];
 uint8_t manhattan_edges[12][255];
@@ -33,12 +33,7 @@ uint8_t manhattan_heuristic(RubiksCube &cube) {
   for (size_t i = 0; i < 12; i++) {
     edge_total += manhattan_edges[i][cube.getEdge(i)];
   }
-
   return max(corner_total / 4, edge_total / 4);
-}
-
-bool solve_goal(RubiksCube &cube, void *aux) {
-  return cube.isSolved();
 }
 
 bool cornerSolver_goal(RubiksCube &cube, void *aux) {
@@ -69,10 +64,11 @@ void fillManhattanCorners() {
         cube->resetCube();
         vector<RubiksCube::Rotation> moves = searcher->search(*cube);
         manhattan_corners[goalPos][goalCorner] = moves.size();
-        delete pos_corner;
+        delete[] pos_corner;
       }
     }
   }
+  delete searcher;
   delete cube;
 }
 void fillManhattanEdges() {
@@ -91,28 +87,15 @@ void fillManhattanEdges() {
         cube->resetCube();
         vector<RubiksCube::Rotation> moves = searcher->search(*cube);
         manhattan_edges[goalPos][goalEdge] = moves.size();
-        delete pos_edge;
+        delete[] pos_edge;
       }
     }
   }
+  delete searcher;
   delete cube;
 }
 
-int main() {
+void manhattan_init() {
   fillManhattanCorners();
   fillManhattanEdges();
-
-  RubiksCube *cube = new RubiksCube;
-  cube->scramble(7);
-  cube->printCube();
-  IDASearcher *searcher = new IDASearcher(iddfs_heuristic, solve_goal, NULL);
-  IDASearcher *man_searcher = new IDASearcher(manhattan_heuristic, solve_goal, NULL);
-  vector<RubiksCube::Rotation> moves = man_searcher->search(*cube);
-  std::cout << "Manhattan searcher found solution of length " << moves.size() << "\n";
-  vector<RubiksCube::Rotation> moves2 = searcher->search(*cube);
-  std::cout << "IDDFS searcher found solution of length " << moves2.size() << "\n";
-
-  // for (auto &move : moves) {
-  //   std::cout << (int)move << "\n";
-  // }
 }

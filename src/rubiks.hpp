@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 using namespace std;
@@ -90,6 +92,7 @@ class RubiksCube {
   uint8_t getCorner(uint8_t pos);
   uint8_t getEdge(uint8_t pos);
   bool operator==(const RubiksCube &c) const;
+  Color *get_cube_array();
 
  private:
   Color cube[48];
