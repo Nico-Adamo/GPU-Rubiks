@@ -5,17 +5,23 @@ How do we run the program and see output? (please include a few demo scripts!)
 To build, run `make`.
 
 Usage:
-./bin/rubik -d [depth] -n [num_cubes] [-i] [-m] [-g]
+
+`./bin/rubik -d [depth] -n [num_cubes] [-i] [-m] [-g]`
 
 Generates `num_cubes` cubes, scrambled to a depth of `depth`, and solves each
-with each of the flagged solvers, timing the solve. -i Enables the IDDFS solver,
+with each of the flagged solvers, timing the solve. 
+
+`-i` Enables the IDDFS solver,
 which uses iterative deepening depth-first-search on CPU. The slowest of the
-solvers, only recommended to a depth of 6. -m Enables the Manhattan solver,
+solvers, only recommended to a depth of 6. 
+
+`-m` Enables the Manhattan solver,
 which uses IDA* with a manhattan distance heuristic on CPU. The fastest CPU
-solver, recommended to a depth of 12. -g Enables the GPU-Manhattan solver, which
+solver, recommended to a depth of 12. 
+
+`-g` Enables the GPU-Manhattan solver, which
 uses GPU-IDA* (see project description) with the manhattan distance metric.
-Recommended to a depth of 13 (should be able to solve up to a depth of ~15 but
-above 5 seconds of runtime the kernel is timed out due to Titan constraints).
+Recommended to a depth of 15.
 
 # Project Description
 
@@ -105,6 +111,7 @@ time for each algorithm to find a solution at a given depth. Note that this is
 distinct from the scramble depth - often, a cube scrambled in n moves can be
 solved in ~n-2 because some moves cancel each other out.
 
+```
 +-------------------+-----------+---------------+---------------+
 | Depth of Solution |           Avg. Wall Time (s)              |
 +-------------------+-----------+---------------+---------------+
@@ -119,6 +126,7 @@ solved in ~n-2 because some moves cancel each other out.
 |                12 |       N/A |         89.10 |          1.28 |
 |                13 |       N/A |        604.18 |          13.4 |
 +-------------------+-----------+---------------+---------------+
+```
 
 At depths of 10 - 13, the GPU has a speedup of roughly 50x-100x over the CPU
 version. At a depth of 13, the manhattan algorithms are exploring almost exactly
